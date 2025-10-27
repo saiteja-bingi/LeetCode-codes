@@ -20,29 +20,28 @@ jobs:
     - name: Create build directory
       run: mkdir -p build
 
-    - name: Compile all C++ files (including subfolders)
+    - name: Compile only full programs
       run: |
         set -e
         cpp_files=$(find . -name "*.cpp" -not -path "./.github/*")
-        if [ -z "$cpp_files" ]; then
-          echo "⚠️ No .cpp files found to compile."
-          exit 0
-        fi
+        skip_count=0
+        compile_count=0
+
         for file in $cpp_files; do
+          # Skip LeetCode-style files (no main function)
+          if ! grep -q "int main" "$file"; then
+            echo "⚠️ Skipping (no main): $file"
+            skip_count=$((skip_count+1))
+            continue
+          fi
+
           echo "🔹 Compiling: $file"
           filename=$(basename "$file" .cpp)
           g++ -std=c++17 -O2 -Wall "$file" -o "build/$filename"
+          compile_count=$((compile_count+1))
         done
-        echo "✅ Compilation complete."
+
+        echo "✅ Compiled $compile_count file(s), skipped $skip_count file(s)."
 
     - name: Show compiled files
       run: ls -R build || true
-
-    - name: Optionally run a test executable
-      run: |
-        if [ -x build/main ]; then
-          echo "🚀 Running build/main..."
-          ./build/main || true
-        else
-          echo "ℹ️ No 'build/main' executable found (skipping run)."
-        fi
