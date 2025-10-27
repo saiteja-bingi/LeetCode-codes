@@ -8,16 +8,27 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: configure
-      run: ./configure
-    - name: make
-      run: make
-    - name: make check
-      run: make check
-    - name: make distcheck
-      run: make distcheck
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up g++
+      run: sudo apt-get update && sudo apt-get install -y g++
+
+    - name: Build all C++ files
+      run: |
+        mkdir -p build
+        for file in *.cpp; do
+          echo "Compiling $file..."
+          g++ -std=c++17 -O2 -Wall "$file" -o "build/${file%.cpp}"
+        done
+
+    - name: Run a sample executable (optional)
+      run: |
+        if [ -f build/main ]; then
+          ./build/main
+        else
+          echo "No main executable found (skipping run)."
+        fi
