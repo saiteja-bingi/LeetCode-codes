@@ -1,0 +1,12 @@
+// Last updated: 10/27/2025, 7:05:44 PM
+class Solution {
+public:
+    vector<int> numberGame(vector<int>& nums) {
+        int n=nums.size();
+        sort(nums.begin(),nums.end());;
+        for(int i=0;i<n-1;i+=2){
+            swap(nums[i],nums[i+1]);
+        }
+        return nums;
+    }
+};
