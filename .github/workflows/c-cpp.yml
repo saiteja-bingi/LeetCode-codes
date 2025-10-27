@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
@@ -14,19 +14,35 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up build directory
+    - name: Install g++
+      run: sudo apt-get update && sudo apt-get install -y g++
+
+    - name: Create build directory
       run: mkdir -p build
 
-    - name: Compile all C++ files
+    - name: Compile all C++ files (including subfolders)
       run: |
-        echo "Compiling all .cpp files..."
-        g++ -std=c++17 *.cpp -o build/main || echo "No .cpp files found."
+        set -e
+        cpp_files=$(find . -name "*.cpp" -not -path "./.github/*")
+        if [ -z "$cpp_files" ]; then
+          echo "⚠️ No .cpp files found to compile."
+          exit 0
+        fi
+        for file in $cpp_files; do
+          echo "🔹 Compiling: $file"
+          filename=$(basename "$file" .cpp)
+          g++ -std=c++17 -O2 -Wall "$file" -o "build/$filename"
+        done
+        echo "✅ Compilation complete."
 
-    - name: Optional: Run main if present
+    - name: Show compiled files
+      run: ls -R build || true
+
+    - name: Optionally run a test executable
       run: |
         if [ -x build/main ]; then
-          echo "Running build/main..."
+          echo "🚀 Running build/main..."
           ./build/main || true
         else
-          echo "No build/main executable to run (skipping)."
+          echo "ℹ️ No 'build/main' executable found (skipping run)."
         fi
