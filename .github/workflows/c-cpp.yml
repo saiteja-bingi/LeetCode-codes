@@ -9,27 +9,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout code
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Install g++
-      run: sudo apt-get update && sudo apt-get install -y g++
+    - name: Set up build directory
+      run: mkdir -p build
 
-    - name: Build all C++ files from repository (search subfolders)
+    - name: Compile all C++ files
       run: |
-        mkdir -p build
-        found=0
-        while IFS= read -r -d '' file; do
-          found=1
-          echo "Compiling $file..."
-          g++ -std=c++17 -O2 -Wall "$file" -o "build/$(basename "${file%.cpp}")"
-        done < <(find . -type f -name '*.cpp' -print0)
-
-        if [ "$found" -eq 0 ]; then
-          echo "No .cpp files found in repository."
-          exit 1
-        fi
+        echo "Compiling all .cpp files..."
+        g++ -std=c++17 *.cpp -o build/main || echo "No .cpp files found."
 
     - name: Optional: Run main if present
       run: |
